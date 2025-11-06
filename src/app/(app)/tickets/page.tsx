@@ -1,14 +1,40 @@
 'use client';
 
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+
+interface Ticket {
+  id: string;
+  title: string;
+  customer: string;
+  priority: string;
+  status: string;
+}
 
 export default function Tickets() {
-  const tickets = [
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const tickets: Ticket[] = [
     { id: '#TK-001', title: 'Login issue', customer: 'John Silva', priority: 'High', status: 'Open' },
     { id: '#TK-002', title: 'Payment processing error', customer: 'Mary Santos', priority: 'Critical', status: 'In Progress' },
     { id: '#TK-003', title: 'Question about functionality', customer: 'Peter Costa', priority: 'Low', status: 'Resolved' },
-    { id: '#TK-004', title: 'New feature request', customer: 'Anna Oliveira', priority: 'Medium', status: 'Open' }
+    { id: '#TK-004', title: 'New feature request', customer: 'Anna Oliveira', priority: 'Medium', status: 'Open' },
+    { id: '#TK-005', title: 'Database connection timeout', customer: 'Carlos Lima', priority: 'Critical', status: 'In Progress' },
+    { id: '#TK-006', title: 'UI bug on mobile', customer: 'Julia Ferreira', priority: 'Medium', status: 'Open' },
+    { id: '#TK-007', title: 'Export data feature', customer: 'Roberto Alves', priority: 'Low', status: 'Resolved' },
+    { id: '#TK-008', title: 'Password reset not working', customer: 'Patricia Souza', priority: 'High', status: 'In Progress' },
+    { id: '#TK-009', title: 'Performance issues', customer: 'Fernando Costa', priority: 'High', status: 'Open' },
+    { id: '#TK-010', title: 'Integration with API', customer: 'Mariana Lima', priority: 'Medium', status: 'Resolved' },
+    { id: '#TK-011', title: 'Email notifications', customer: 'Lucas Martins', priority: 'Low', status: 'Closed' },
+    { id: '#TK-012', title: 'Security vulnerability', customer: 'Amanda Silva', priority: 'Critical', status: 'In Progress' }
   ];
+
+  // Cálculos de paginação
+  const indexOfLastTicket = currentPage * itemsPerPage;
+  const indexOfFirstTicket = indexOfLastTicket - itemsPerPage;
+  const currentTickets = tickets.slice(indexOfFirstTicket, indexOfLastTicket);
+  const totalPages = Math.ceil(tickets.length / itemsPerPage);
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
@@ -28,6 +54,15 @@ export default function Tickets() {
       'Closed': 'bg-gray-100 text-gray-700'
     };
     return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -92,7 +127,7 @@ export default function Tickets() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {tickets.map((ticket) => (
+              {currentTickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-semibold text-[#134C60]">{ticket.id}</span>
@@ -120,6 +155,77 @@ export default function Tickets() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              Showing {indexOfFirstTicket + 1} to {Math.min(indexOfLastTicket, tickets.length)} of {tickets.length} results
+            </span>
+            <div className="flex items-center gap-2">
+              <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
+                Items per page:
+              </label>
+              <select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#44C0CF] focus:border-transparent"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
+              if (
+                pageNumber === 1 ||
+                pageNumber === totalPages ||
+                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                      currentPage === pageNumber
+                        ? 'bg-[#44C0CF] text-white'
+                        : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              } else if (
+                pageNumber === currentPage - 2 ||
+                pageNumber === currentPage + 2
+              ) {
+                return <span key={pageNumber} className="px-2 text-gray-400">...</span>;
+              }
+              return null;
+            })}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

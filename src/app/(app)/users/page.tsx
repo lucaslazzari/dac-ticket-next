@@ -1,14 +1,41 @@
 'use client';
 
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  lastLogin: string;
+}
 
 export default function Users() {
-  const users = [
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const users: User[] = [
     { id: 1, name: 'Admin User', email: 'admin@dac.com', role: 'Administrator', status: 'Active', lastLogin: '2024-11-05' },
     { id: 2, name: 'John Doe', email: 'john@dac.com', role: 'Manager', status: 'Active', lastLogin: '2024-11-04' },
     { id: 3, name: 'Jane Smith', email: 'jane@dac.com', role: 'Support', status: 'Active', lastLogin: '2024-11-05' },
-    { id: 4, name: 'Bob Wilson', email: 'bob@dac.com', role: 'Support', status: 'Inactive', lastLogin: '2024-10-28' }
+    { id: 4, name: 'Bob Wilson', email: 'bob@dac.com', role: 'Support', status: 'Inactive', lastLogin: '2024-10-28' },
+    { id: 5, name: 'Alice Johnson', email: 'alice@dac.com', role: 'Manager', status: 'Active', lastLogin: '2024-11-06' },
+    { id: 6, name: 'Charlie Brown', email: 'charlie@dac.com', role: 'Support', status: 'Active', lastLogin: '2024-11-03' },
+    { id: 7, name: 'Diana Prince', email: 'diana@dac.com', role: 'User', status: 'Active', lastLogin: '2024-11-05' },
+    { id: 8, name: 'Edward Norton', email: 'edward@dac.com', role: 'Support', status: 'Inactive', lastLogin: '2024-10-15' },
+    { id: 9, name: 'Fiona Green', email: 'fiona@dac.com', role: 'Manager', status: 'Active', lastLogin: '2024-11-06' },
+    { id: 10, name: 'George Miller', email: 'george@dac.com', role: 'User', status: 'Active', lastLogin: '2024-11-04' },
+    { id: 11, name: 'Hannah White', email: 'hannah@dac.com', role: 'Support', status: 'Active', lastLogin: '2024-11-05' },
+    { id: 12, name: 'Ian Black', email: 'ian@dac.com', role: 'Administrator', status: 'Active', lastLogin: '2024-11-06' }
   ];
+
+  // Cálculos de paginação
+  const indexOfLastUser = currentPage * itemsPerPage;
+  const indexOfFirstUser = indexOfLastUser - itemsPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
@@ -18,6 +45,15 @@ export default function Users() {
       'User': 'bg-gray-100 text-gray-700'
     };
     return colors[role] || 'bg-gray-100 text-gray-700';
+  };
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -82,7 +118,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {users.map((user) => (
+              {currentUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
@@ -117,6 +153,77 @@ export default function Users() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              Showing {indexOfFirstUser + 1} to {Math.min(indexOfLastUser, users.length)} of {users.length} results
+            </span>
+            <div className="flex items-center gap-2">
+              <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
+                Items per page:
+              </label>
+              <select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#44C0CF] focus:border-transparent"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
+              if (
+                pageNumber === 1 ||
+                pageNumber === totalPages ||
+                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                      currentPage === pageNumber
+                        ? 'bg-[#44C0CF] text-white'
+                        : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              } else if (
+                pageNumber === currentPage - 2 ||
+                pageNumber === currentPage + 2
+              ) {
+                return <span key={pageNumber} className="px-2 text-gray-400">...</span>;
+              }
+              return null;
+            })}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

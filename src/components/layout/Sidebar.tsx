@@ -3,16 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Ticket, UserCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Ticket, UserCircle, FileText, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const pathname = usePathname();
 
   const menuItems = [
+    { id: 'home', label: 'Home', icon: Home, href: '/' },
     { id: 'customers', label: 'Customers', icon: Users, href: '/customers' },
     { id: 'tickets', label: 'Tickets', icon: Ticket, href: '/tickets' },
-    { id: 'users', label: 'Users', icon: UserCircle, href: '/users' }
+    { id: 'users', label: 'Users', icon: UserCircle, href: '/users' },
+    { id: 'logs', label: 'Logs', icon: FileText, href: '/logs' }
   ];
 
   return (

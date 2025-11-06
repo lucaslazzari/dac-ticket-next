@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { User, LogOut, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -19,7 +21,12 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
-    console.log('Logout');
+    // Limpar dados de autenticação
+    localStorage.removeItem('auth');
+    localStorage.removeItem('user');
+    
+    // Redirecionar para login
+    router.push('/login');
   };
 
   const handleProfile = () => {
