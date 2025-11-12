@@ -1,21 +1,30 @@
 import { Customer } from '../types/customer';
+import { Product } from '../types/product';
 
 const MOCK_DATA: Customer[] = [
-  { id: 1, name: 'John Silva', email: 'john@email.com', status: 'Active', tickets: 12 },
-  { id: 2, name: 'Mary Santos', email: 'mary@email.com', status: 'Active', tickets: 8 },
-  { id: 3, name: 'Peter Costa', email: 'peter@email.com', status: 'Inactive', tickets: 3 },
-  { id: 4, name: 'Anna Oliveira', email: 'anna@email.com', status: 'Active', tickets: 15 },
-  { id: 5, name: 'Carlos Lima', email: 'carlos@email.com', status: 'Active', tickets: 7 },
-  { id: 6, name: 'Julia Ferreira', email: 'julia@email.com', status: 'Active', tickets: 22 },
-  { id: 7, name: 'Roberto Alves', email: 'roberto@email.com', status: 'Inactive', tickets: 5 },
-  { id: 8, name: 'Patricia Souza', email: 'patricia@email.com', status: 'Active', tickets: 18 },
-  { id: 9, name: 'Fernando Costa', email: 'fernando@email.com', status: 'Active', tickets: 9 },
-  { id: 10, name: 'Mariana Lima', email: 'mariana@email.com', status: 'Active', tickets: 14 },
-  { id: 11, name: 'Lucas Martins', email: 'lucas@email.com', status: 'Inactive', tickets: 2 },
-  { id: 12, name: 'Amanda Silva', email: 'amanda@email.com', status: 'Active', tickets: 11 },
+  { id: 1, name: 'Trimble Inc.', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 2, name: 'Mary Santos', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 3, name: 'Peter Costa', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Inactive' },
+  { id: 4, name: 'Anna Oliveira', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 5, name: 'Carlos Lima', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 6, name: 'Julia Ferreira', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active'},
+  { id: 7, name: 'Roberto Alves', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Inactive' },
+  { id: 8, name: 'Patricia Souza', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 9, name: 'Fernando Costa', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 10, name: 'Mariana Lima', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
+  { id: 11, name: 'Lucas Martins', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Inactive' },
+  { id: 12, name: 'Amanda Silva', blulogixAccountNumber: 'D119-0012895', carrierAccountNumber: 'telna001', status: 'Active' },
 ];
 
-function delay(ms: number) {
+const CUSTOMER_PRODUCTS: Record<number, Set<number>> = {
+  1: new Set([1, 2]),
+  2: new Set([2]),
+  3: new Set(),
+  4: new Set([1, 3]),
+  5: new Set([3]),
+};
+
+function delay(ms = 200) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
@@ -27,6 +36,9 @@ export interface CustomersService {
     perPage: number;
   }>;
   getById(id: number): Promise<Customer | null>;
+  updateCustomer(id: number, payload: Partial<Customer>): Promise<Customer | null>;
+  addProductToCustomer(customerId: number, productId: number): Promise<Customer | null>;
+  removeProductFromCustomer(customerId: number, productId: number): Promise<Customer | null>;
 }
 
 export const customersServiceMock: CustomersService = {
@@ -35,28 +47,57 @@ export const customersServiceMock: CustomersService = {
     const page = params?.page ?? 1;
     const perPage = params?.perPage ?? 5;
 
-    await delay(300); // simula latência
+    await delay(300);
 
     let filtered = MOCK_DATA;
     if (search) {
       filtered = filtered.filter(
         (c) =>
           c.name.toLowerCase().includes(search) ||
-          c.email.toLowerCase().includes(search) ||
+          c.blulogixAccountNumber.toLowerCase().includes(search) ||
+          c.carrierAccountNumber.toLowerCase().includes(search) ||
           c.status.toLowerCase().includes(search)
       );
     }
 
     const total = filtered.length;
     const start = (page - 1) * perPage;
-    const end = start + perPage;
-    const data = filtered.slice(start, end);
+    const data = filtered.slice(start, start + perPage);
 
     return { data, total, page, perPage };
   },
 
   async getById(id: number) {
     await delay(200);
-    return MOCK_DATA.find((c) => c.id === id) ?? null;
+    const customer = MOCK_DATA.find((c) => c.id === id);
+    if (!customer) return null;
+
+    const productIds = Array.from(CUSTOMER_PRODUCTS[id] ?? new Set<number>());
+    const products = (await import('./products.service')).productsServiceMock.list();
+    const allProducts = await products;
+    const customerProducts = allProducts.filter((p) => productIds.includes(p.id));
+
+    return { ...customer, products: customerProducts };
+  },
+
+  async updateCustomer(id: number, payload: Partial<Customer>) {
+    await delay(200);
+    const index = MOCK_DATA.findIndex((c) => c.id === id);
+    if (index === -1) return null;
+    MOCK_DATA[index] = { ...MOCK_DATA[index], ...payload };
+    return MOCK_DATA[index];
+  },
+
+  async addProductToCustomer(customerId: number, productId: number) {
+    await delay(200);
+    if (!CUSTOMER_PRODUCTS[customerId]) CUSTOMER_PRODUCTS[customerId] = new Set();
+    CUSTOMER_PRODUCTS[customerId].add(productId);
+    return this.getById(customerId);
+  },
+
+  async removeProductFromCustomer(customerId: number, productId: number) {
+    await delay(200);
+    CUSTOMER_PRODUCTS[customerId]?.delete(productId);
+    return this.getById(customerId);
   },
 };

@@ -1,7 +1,10 @@
+import { Product } from "./product";
+
 export interface Customer {
   id: number;
   name: string;
-  email: string;
+  blulogixAccountNumber: string;
+  carrierAccountNumber: string;
   status: 'Active' | 'Inactive';
-  tickets: number;
+  products?: Product[];
 }
