@@ -41,7 +41,7 @@ export default function Header() {
       <div className="flex items-center justify-between px-8 py-4">
         {/* Logo / Brand */}
         <div className="flex items-center gap-3">
-          <div
+          {/* <div
             className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#44C0CF] to-[#2a9fb0] flex items-center justify-center shadow-lg"
             aria-hidden
           >
@@ -50,7 +50,7 @@ export default function Header() {
           <div>
             <h1 className="text-2xl font-bold tracking-wide">DAC</h1>
             <p className="text-xs text-[#44C0CF] font-medium">Management System</p>
-          </div>
+          </div> */}
         </div>
 
         {/* User Menu */}

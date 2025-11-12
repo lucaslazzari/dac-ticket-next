@@ -71,6 +71,12 @@ export function CustomerEditForm({ customer, onSave, loading }: CustomerEditForm
         >
           Save
         </button>
+        <button
+          disabled={loading}
+          className="bg-[#44C0CF] hover:bg-[#3ab0bf] text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all hover:scale-105 disabled:opacity-50 ml-5"
+        >
+          Generate New Token
+        </button>
       </div>
     </div>
   );

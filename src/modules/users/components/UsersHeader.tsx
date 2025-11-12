@@ -19,7 +19,7 @@ export function UsersHeader({ onNewCustomer }: Props) {
         className="bg-[#44C0CF] hover:bg-[#3ab0bf] text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg transition-all hover:scale-105"
       >
         <Plus size={20} />
-        New Customer
+        New User
       </button>
     </div>
   );
