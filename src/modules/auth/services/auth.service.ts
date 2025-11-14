@@ -20,3 +20,15 @@ export async function logoutApi(): Promise<void> {
 export async function meApi(): Promise<Auth> {
   return apiFetchJson<Auth>("/api/Auth/me", { method: "GET" });
 }
+
+export async function refreshApi(): Promise<Auth | null> {
+  try {
+    // Chama /refresh e espera o user no JSON
+    const user = await apiFetchJson<Auth>("/api/Auth/refresh", { method: "POST" });
+    return user;
+  } catch (err) {
+    console.error("Erro ao tentar refresh token:", err);
+    return null; // refresh falhou
+  }
+}
+
