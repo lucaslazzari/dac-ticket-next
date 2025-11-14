@@ -1,36 +1,55 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { CustomerDetailHeader } from '../components/details/CustomerDetailHeader';
-import { CustomerEditForm } from '../components/details/CustomerEditForm';
-import { CustomerProductsSection } from '../components/details/CustomerProductsSection';
-import { useCustomerDetail } from '../hooks/useCustomerDetail';
-import { useProducts } from '../hooks/useProducts';
-import { customersServiceMock } from '../services/customers.service';
+import { useEffect, useState } from "react";
+import { CustomerDetailHeader } from "../components/details/CustomerDetailHeader";
+import { CustomerEditForm } from "../components/details/CustomerEditForm";
+import { CustomerProductsSection } from "../components/details/CustomerProductsSection";
+import { useCustomerDetail } from "../hooks/useCustomerDetail";
+import { useProducts } from "../hooks/useProducts";
+import { customersServiceMock } from "../services/customers.service";
+import type { Product } from "@/modules/customers/types/product";
 
 export default function DetailsPage({ customerId }: { customerId: number }) {
-  const { data: customer, loading, refetch } = useCustomerDetail(customerId);
+  const { data: customerData, loading } = useCustomerDetail(customerId);
   const { data: allProducts } = useProducts();
 
   const [mutating, setMutating] = useState(false);
+  const [customer, setCustomer] = useState(customerData);
+
+  useEffect(() => {
+    if (customerData) setCustomer(customerData);
+  }, [customerData]);
 
   const handleSave = async (payload: any) => {
     if (!customerId) return;
     setMutating(true);
     try {
       await customersServiceMock.updateCustomer(customerId, payload);
-      await refetch();
+      setCustomer((prev) => ({ ...prev, ...payload }));
     } finally {
       setMutating(false);
     }
   };
 
-  const handleAdd = async (productId: number) => {
-    if (!customerId) return;
+  // Adiciona múltiplos produtos de uma vez
+  const handleAddBulk = async (productIds: number[]) => {
+    if (!customerId || !allProducts) return;
     setMutating(true);
     try {
-      await customersServiceMock.addProductToCustomer(customerId, productId);
-      await refetch();
+      // envia ao serviço
+      await customersServiceMock.addProductsToCustomer(customerId, productIds);
+
+      // atualiza incrementalmente
+      setCustomer((prev) => {
+        if (!prev) return prev;
+        const newProducts = allProducts.filter((p) =>
+          productIds.includes(p.id)
+        );
+        return {
+          ...prev,
+          products: [...(prev.products ?? []), ...newProducts],
+        };
+      });
     } finally {
       setMutating(false);
     }
@@ -40,8 +59,18 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
     if (!customerId) return;
     setMutating(true);
     try {
-      await customersServiceMock.removeProductFromCustomer(customerId, productId);
-      await refetch();
+      await customersServiceMock.removeProductFromCustomer(
+        customerId,
+        productId
+      );
+      setCustomer((prev) =>
+        prev
+          ? {
+              ...prev,
+              products: (prev.products ?? []).filter((p) => p.id !== productId),
+            }
+          : prev
+      );
     } finally {
       setMutating(false);
     }
@@ -68,7 +97,8 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
       <CustomerProductsSection
         products={customer.products ?? []}
         availableProducts={allProducts ?? []}
-        onAdd={handleAdd}
+        onAdd={() => {}} // stub vazio
+        onAddBulk={handleAddBulk}
         onRemove={handleRemove}
         loading={mutating}
       />

@@ -6,9 +6,9 @@ interface Props {
   };
 }
 
-export function UsersStats({ stats }: Props) {
+export function CustomersStats({ stats }: Props) {
   const cards = [
-    { label: 'Total Users', value: stats.total, color: 'from-blue-500 to-blue-600' },
+    { label: 'Total Customers', value: stats.total, color: 'from-blue-500 to-blue-600' },
     { label: 'Active', value: stats.active, color: 'from-green-500 to-green-600' },
     { label: 'Inactive', value: stats.inactive, color: 'from-gray-500 to-gray-600' }
   ];

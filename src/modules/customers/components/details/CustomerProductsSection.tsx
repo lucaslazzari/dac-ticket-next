@@ -1,6 +1,6 @@
-import { Search, Plus } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
-import type { Product } from '@/modules/customers/types/product';
+import { Search, Plus } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import type { Product } from "@/modules/customers/types/product";
 
 interface CustomerProductsSectionProps {
   products: Product[];
@@ -19,12 +19,12 @@ export function CustomerProductsSection({
   onAddBulk,
   loading,
 }: CustomerProductsSectionProps) {
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedAdd, setSelectedAdd] = useState<Set<number>>(new Set());
 
   // Debounced search term for the add panel
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(filter), 200); // 200ms debounce
     return () => clearTimeout(t);
@@ -72,20 +72,19 @@ export function CustomerProductsSection({
 
   const handleAddSelected = async () => {
     if (selectedAdd.size === 0) return;
+
     const ids = Array.from(selectedAdd);
-    try {
-      if (onAddBulk) {
-        await onAddBulk(ids);
-      } else {
-        for (const id of ids) {
-          await Promise.resolve(onAdd(id));
-        }
-      }
-      setSelectedAdd(new Set());
-      setPanelOpen(false);
-    } catch (err) {
-      console.error('Error adding products', err);
+
+    if (onAddBulk) {
+      // chama bulk passando todos os ids de uma vez
+      await onAddBulk(ids);
+    } else {
+      // fallback para adicionar um por um
+      await Promise.all(ids.map((id) => onAdd(id)));
     }
+
+    setSelectedAdd(new Set());
+    setPanelOpen(false);
   };
 
   const isSelected = (id: number) => selectedAdd.has(id);
@@ -97,7 +96,10 @@ export function CustomerProductsSection({
 
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -125,7 +127,10 @@ export function CustomerProductsSection({
               >
                 <div className="mb-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    <Search
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={16}
+                    />
                     <input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -136,12 +141,15 @@ export function CustomerProductsSection({
                 </div>
 
                 <div className="text-xs text-gray-500 mb-2">
-                  Showing {addOptionsFiltered.length} / {addOptions.length} available
+                  Showing {addOptionsFiltered.length} / {addOptions.length}{" "}
+                  available
                 </div>
 
                 <div className="divide-y divide-gray-100">
                   {addOptionsFiltered.length === 0 ? (
-                    <div className="text-sm text-gray-500 p-2">No products found.</div>
+                    <div className="text-sm text-gray-500 p-2">
+                      No products found.
+                    </div>
                   ) : (
                     addOptionsFiltered.map((p) => (
                       <label
@@ -156,7 +164,9 @@ export function CustomerProductsSection({
                         />
                         <div className="text-sm">
                           <div className="font-medium">{p.name}</div>
-                          <div className="text-xs text-gray-500">{p.productCode} • {p.provider}</div>
+                          <div className="text-xs text-gray-500">
+                            {p.productCode} • {p.provider}
+                          </div>
                         </div>
                       </label>
                     ))
@@ -195,11 +205,21 @@ export function CustomerProductsSection({
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Product Code</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Term (months)</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Provider</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                Product Code
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                Term (months)
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                Provider
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
