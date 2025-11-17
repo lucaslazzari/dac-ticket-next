@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { User, LogOut, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/modules/auth/hooks/useAuth';
 
 export default function Header() {
+  const { user, loading, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -20,40 +22,47 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth');
-        localStorage.removeItem('user');
-      }
-    } catch {}
-    router.push('/login');
+      await logout();
+      router.push('/login');
+    } catch {
+      // opcional: tratar erro
+    }
   };
 
   const handleProfile = () => {
-    // Aqui você pode navegar para /profile quando existir
     // router.push('/profile');
     setIsUserMenuOpen(false);
   };
 
+  if (loading) {
+    return (
+      <header className="bg-[#134C60] text-white shadow-xl border-b border-[#1d6478] p-4">
+        <p>Loading user...</p>
+      </header>
+    );
+  }
+
+  if (!user) {
+    return null; // ou redirecione para login
+  }
+
+  const name = user.name ?? 'User';
+  const email = user.email ?? '';
+  const role = user.role ?? 'User';
+  const initials = name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <header className="bg-[#134C60] text-white shadow-xl border-b border-[#1d6478]">
       <div className="flex items-center justify-between px-8 py-4">
-        {/* Logo / Brand */}
-        <div className="flex items-center gap-3">
-          {/* <div
-            className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#44C0CF] to-[#2a9fb0] flex items-center justify-center shadow-lg"
-            aria-hidden
-          >
-            <div className="w-6 h-6 rounded-md border-2 border-white"></div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-wide">DAC</h1>
-            <p className="text-xs text-[#44C0CF] font-medium">Management System</p>
-          </div> */}
-        </div>
+        <div className="flex items-center gap-3">{/* Logo aqui */}</div>
 
-        {/* User Menu */}
         <div className="relative" ref={menuRef}>
           <button
             type="button"
@@ -63,18 +72,20 @@ export default function Header() {
             className="flex items-center gap-3 hover:bg-[#1d6478] px-4 py-2 rounded-xl transition-all group"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold">John Doe</p>
-              <p className="text-xs text-gray-300">Administrator</p>
+              <p className="text-sm font-semibold">{name}</p>
+              <p className="text-xs text-gray-300">{role}</p>
             </div>
             <div
               className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#44C0CF] to-[#2a9fb0] flex items-center justify-center text-white font-bold shadow-lg text-lg"
               aria-hidden
             >
-              JD
+              {initials}
             </div>
             <ChevronDown
               size={18}
-              className={`text-gray-300 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
+              className={`text-gray-300 transition-transform ${
+                isUserMenuOpen ? 'rotate-180' : ''
+              }`}
             />
           </button>
 
@@ -85,8 +96,8 @@ export default function Header() {
               className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100 animate-fadeIn"
             >
               <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-800">John Doe</p>
-                <p className="text-xs text-gray-500">john.doe@dac.com</p>
+                <p className="text-sm font-semibold text-gray-800">{name}</p>
+                <p className="text-xs text-gray-500">{email}</p>
               </div>
 
               <button

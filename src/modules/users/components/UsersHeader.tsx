@@ -3,10 +3,10 @@
 import { Plus } from 'lucide-react';
 
 interface Props {
-  onNewCustomer?: () => void;
+  onNewUser?: () => void;
 }
 
-export function UsersHeader({ onNewCustomer }: Props) {
+export function UsersHeader({ onNewUser }: Props) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -15,7 +15,7 @@ export function UsersHeader({ onNewCustomer }: Props) {
       </div>
       <button
         type="button"
-        onClick={onNewCustomer}
+        onClick={onNewUser}
         className="bg-[#44C0CF] hover:bg-[#3ab0bf] text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg transition-all hover:scale-105"
       >
         <Plus size={20} />

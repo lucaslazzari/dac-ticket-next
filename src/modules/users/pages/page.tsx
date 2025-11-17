@@ -1,4 +1,3 @@
-// app/users/page.tsx (ou pages/users/index.tsx)
 "use client";
 
 import { UsersTable } from "../components/usersTable";
@@ -8,6 +7,11 @@ import { useUsers } from "../hooks/useUsers";
 import { UsersHeader } from "../components/UsersHeader";
 import { useStats } from "../hooks/useStats";
 import { UsersStats } from "../components/UsersStats";
+import { UserCreateModal } from "../components/new/UserCreateModal";
+import { useState } from "react";
+import { UserFormData } from "../types/user.form.data";
+import { useCreateUser } from "../hooks/useCreateUser";
+import { UserCreated } from "../types/user.created";
 
 export default function UsersPage() {
   const { data, total, loading, params, setParams } = useUsers({
@@ -15,7 +19,26 @@ export default function UsersPage() {
     perPage: 5,
   });
 
+  const { createUser, loading: creating, error: createError } = useCreateUser();
+
   const { data: stats, loading: statsLoading } = useStats();
+
+  const [createdUser, setCreatedUser] = useState<UserCreated | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleCreateUser = async (data: UserFormData) => {
+    const created = await createUser(data);
+    setCreatedUser(created);
+    // Atualiza a lista para incluir o novo usuário
+    setParams((p) => ({ ...p }));
+    // Mantém o modal aberto para mostrar a senha
+    return created;
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setCreatedUser(null); // limpa o usuário criado para resetar o form
+  };
 
   const perPage = params.perPage ?? 5;
   const currentPage = params.page ?? 1;
@@ -25,7 +48,7 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <UsersHeader />
+      <UsersHeader onNewUser={() => setOpenModal(true)} />
 
       {/* Stats Section */}
       {statsLoading ? (
@@ -33,7 +56,7 @@ export default function UsersPage() {
           <p className="text-gray-500">Loading stats...</p>
         </div>
       ) : (
-        <UsersStats stats={stats ?? { total: 0, active: 0, inactive: 0}} />
+        <UsersStats stats={stats ?? { total: 0, active: 0, inactive: 0 }} />
       )}
 
       <UsersFilters
@@ -73,6 +96,14 @@ export default function UsersPage() {
           />
         </>
       )}
+
+      <UserCreateModal
+        open={openModal}
+        onClose={handleCloseModal}
+        onCreate={handleCreateUser}
+        loading={creating}
+        createdUser={createdUser}
+      />
     </div>
   );
 }
