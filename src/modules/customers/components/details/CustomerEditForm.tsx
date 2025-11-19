@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CustomerFormData {
   name: string;
   blulogixAccountNumber: string;
   carrierAccountNumber: string;
   status: "Active" | "Inactive";
+  actions: string[];
 }
 
 interface CustomerEditFormProps {
@@ -24,8 +25,12 @@ export function CustomerEditForm({
 }: CustomerEditFormProps) {
   const [form, setForm] = useState<CustomerFormData>(customer);
 
-  const [selectedActions, setSelectedActions] = useState<string[]>([]);
+  const [selectedActions, setSelectedActions] = useState<string[]>(customer.actions ?? []);
 
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, actions: selectedActions }));
+  }, [selectedActions]);
+  
   const handleChange = <T extends keyof CustomerFormData>(
     field: T,
     value: CustomerFormData[T]

@@ -19,9 +19,11 @@ export default function UsersPage() {
     perPage: 5,
   });
 
+  
   const { createUser, loading: creating, error: createError } = useCreateUser();
 
-  const { data: stats, loading: statsLoading } = useStats();
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0);
+  const { data: stats, loading: statsLoading } = useStats(statsRefreshKey);
 
   const [createdUser, setCreatedUser] = useState<UserCreated | null>(null);
   const [openModal, setOpenModal] = useState(false);
@@ -31,6 +33,7 @@ export default function UsersPage() {
     setCreatedUser(created);
     // Atualiza a lista para incluir o novo usuário
     setParams((p) => ({ ...p }));
+    setStatsRefreshKey((k) => k + 1);
     // Mantém o modal aberto para mostrar a senha
     return created;
   };

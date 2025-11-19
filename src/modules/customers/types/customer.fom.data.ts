@@ -1,11 +1,8 @@
-import { Product } from "./product";
-
-export interface Customer {
-  id: number;
+export interface CustomerFormData {
   name: string;
   blulogixAccountNumber: string;
   carrierAccountNumber: string;
   status: 'Active' | 'Inactive';
-  products?: Product[];
+  products?: number[];
   actions?: string[];
 }

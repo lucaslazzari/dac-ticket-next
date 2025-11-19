@@ -1,23 +1,34 @@
-'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { CustomerStats } from '../types/customer.stats';
-import { customersServiceMock } from '../services/customers.service';
+import { customersService } from '../services/customers.service';
 
-export function useStats() {
+export function useStats(refreshKey: any = null) {
   const [data, setData] = useState<CustomerStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const stats = await customersService.getStats();
+      setData(stats);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let canceled = false;
-    setLoading(true);
-    customersServiceMock.getStats()
-      .then((s) => { if (!canceled) setData(s); })
-      .catch((err) => { if (!canceled) setError(err); })
-      .finally(() => { if (!canceled) setLoading(false); });
 
-    return () => { canceled = true; };
-  }, []);
+    fetchStats();
 
-  return { data, loading, error };
+    return () => {
+      canceled = true;
+    };
+  }, [fetchStats, refreshKey]);
+
+  return { data, loading, error, reload: fetchStats };
 }

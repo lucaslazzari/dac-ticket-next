@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Customer } from '../types/customer';
-import { customersServiceMock, type CustomersService } from '../services/customers.service';
+import { customersService, type CustomersService } from '../services/customers.service';
 
-export function useCustomerDetail(customerId?: number | null, service: CustomersService = customersServiceMock) {
+export function useCustomerDetail(customerId?: number | null, service: CustomersService = customersService) {
   const [data, setData] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);

@@ -1,27 +1,25 @@
-
 import React from "react";
 import { redirect, unauthorized } from "next/navigation";
-import { AppShell } from "@/modules/layout"; 
-import { getCurrentUserFromCookies } from "@/modules/auth/server/GetCurrentUserFromCookies";
-import type { Auth } from "@/modules/auth/types/auth";
+import { AppShell } from "@/modules/layout";
+import { headers } from "next/headers";
+import AuthProviderClient from "@/modules/auth/components/AuthProviderClient";
 
-export default async function UsersLayout({ children }: { children: React.ReactNode }) {
-  const user: Auth | null = await getCurrentUserFromCookies();
+export default async function UsersLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const h = await headers(); // NÃO é async
+  const cookieHeader = h.get("cookie");
 
-  // se não autenticado -> redireciona para login
-  if (!user) {
-    return redirect("/login");
-  }
-
-  // valida role (use a string exata que seu backend retorna)
-  if (user.role !== "Administrator") {
-    return redirect("/login");
-  }
+  if (!cookieHeader) return redirect("/login");
 
   // se passou nas checagens, renderiza o layout (pode reutilizar AppShell)
   return (
     <AppShell>
-      {children}
+      <AuthProviderClient allowedRoles={["Administrator"]}>
+        {children}
+      </AuthProviderClient>
     </AppShell>
   );
 }

@@ -1,6 +1,10 @@
 import { Customer } from "../types/customer";
+import { CustomerCreated } from "../types/customer.created";
+import { CustomerFormData } from "../types/customer.fom.data";
 import { CustomerStats } from "../types/customer.stats";
 import { Product } from "../types/product";
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "").trim();
 
 const MOCK_DATA: Customer[] = [
   {
@@ -44,6 +48,7 @@ const MOCK_DATA: Customer[] = [
     blulogixAccountNumber: "D119-0012895",
     carrierAccountNumber: "telna001",
     status: "Active",
+    actions: ["Activate", "Deactivate"],
   },
   {
     id: 7,
@@ -122,49 +127,81 @@ export interface CustomersService {
     productId: number
   ): Promise<Customer | null>;
   getStats(): Promise<CustomerStats>;
+  create(data: CustomerFormData): Promise<CustomerCreated>;
 }
 
-export const customersServiceMock: CustomersService = {
+export const customersService: CustomersService = {
   async list(params) {
-    const search = params?.search?.toLowerCase().trim() ?? "";
-    const page = params?.page ?? 1;
-    const perPage = params?.perPage ?? 5;
+    const query = new URLSearchParams();
 
-    await delay(300);
+    if (params?.search) query.append("search", params.search);
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.perPage) query.append("perPage", params.perPage.toString());
 
-    let filtered = MOCK_DATA;
-    if (search) {
-      filtered = filtered.filter(
-        (c) =>
-          c.name.toLowerCase().includes(search) ||
-          c.blulogixAccountNumber.toLowerCase().includes(search) ||
-          c.carrierAccountNumber.toLowerCase().includes(search) ||
-          c.status.toLowerCase().includes(search)
-      );
+    const res = await fetch(`${API_BASE}/api/Customer?${query.toString()}`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("res: ", res);
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch users: ${res.statusText}`);
     }
 
-    const total = filtered.length;
-    const start = (page - 1) * perPage;
-    const data = filtered.slice(start, start + perPage);
+    const json = await res.json();
 
-    return { data, total, page, perPage };
+    // Ajuste conforme o formato que sua API retorna
+    return {
+      data: json.data,
+      total: json.total,
+      page: json.page,
+      perPage: json.perPage,
+    };
   },
 
-  async getById(id: number) {
-    await delay(200);
-    const customer = MOCK_DATA.find((c) => c.id === id);
-    if (!customer) return null;
+  async create(data: CustomerFormData): Promise<CustomerCreated> {
+    console.log("data", data);
+    const res = await fetch(`${API_BASE}/api/Customer`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-    const productIds = Array.from(CUSTOMER_PRODUCTS[id] ?? new Set<number>());
-    const products = (
-      await import("./products.service")
-    ).productsServiceMock.list();
-    const allProducts = await products;
-    const customerProducts = allProducts.filter((p) =>
-      productIds.includes(p.id)
-    );
+    if (!res.ok) {
+      throw new Error(`Failed to create customer: ${res.statusText}`);
+    }
 
-    return { ...customer, products: customerProducts };
+    return await res.json();
+  },
+
+  async getById(id: number): Promise<Customer | null> {
+    const res = await fetch(`${API_BASE}/api/Customer/${id}`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const customer = await res.json();
+    return customer;
+  },
+
+  async getStats(): Promise<CustomerStats> {
+    const res = await fetch(`${API_BASE}/api/Customer/stats`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch customer stats: ${res.statusText}`);
+    }
+
+    return await res.json();
   },
 
   async updateCustomer(id: number, payload: Partial<Customer>) {
@@ -190,18 +227,5 @@ export const customersServiceMock: CustomersService = {
     await delay(200);
     CUSTOMER_PRODUCTS[customerId]?.delete(productId);
     return this.getById(customerId);
-  },
-
-  async getStats(): Promise<CustomerStats> {
-      await delay(200);
-      const total = MOCK_DATA.length;
-      const active = MOCK_DATA.filter((u) => u.status === 'Active').length;
-      const inactive = total - active;
-  
-      return {
-        total,
-        active,
-        inactive
-      };
-    },
+  }
 };

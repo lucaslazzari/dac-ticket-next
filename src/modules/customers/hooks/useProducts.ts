@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Product } from '../types/product';
-import { productsServiceMock } from '../services/products.service';
+import { productsService } from '../services/products.service';
 
 export function useProducts() {
   const [data, setData] = useState<Product[]>([]);
@@ -10,7 +10,7 @@ export function useProducts() {
 
   useEffect(() => {
     let cancelled = false;
-    productsServiceMock.list().then((res) => {
+    productsService.list().then((res) => {
       if (!cancelled) setData(res);
     }).finally(() => {
       if (!cancelled) setLoading(false);

@@ -6,7 +6,7 @@ import { CustomerEditForm } from "../components/details/CustomerEditForm";
 import { CustomerProductsSection } from "../components/details/CustomerProductsSection";
 import { useCustomerDetail } from "../hooks/useCustomerDetail";
 import { useProducts } from "../hooks/useProducts";
-import { customersServiceMock } from "../services/customers.service";
+import { customersService } from "../services/customers.service";
 import type { Product } from "@/modules/customers/types/product";
 
 export default function DetailsPage({ customerId }: { customerId: number }) {
@@ -24,7 +24,7 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
     if (!customerId) return;
     setMutating(true);
     try {
-      await customersServiceMock.updateCustomer(customerId, payload);
+      await customersService.updateCustomer(customerId, payload);
       setCustomer((prev) => ({ ...prev, ...payload }));
     } finally {
       setMutating(false);
@@ -37,7 +37,7 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
     setMutating(true);
     try {
       // envia ao serviço
-      await customersServiceMock.addProductsToCustomer(customerId, productIds);
+      await customersService.addProductsToCustomer(customerId, productIds);
 
       // atualiza incrementalmente
       setCustomer((prev) => {
@@ -59,7 +59,7 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
     if (!customerId) return;
     setMutating(true);
     try {
-      await customersServiceMock.removeProductFromCustomer(
+      await customersService.removeProductFromCustomer(
         customerId,
         productId
       );
@@ -89,6 +89,7 @@ export default function DetailsPage({ customerId }: { customerId: number }) {
           blulogixAccountNumber: customer.blulogixAccountNumber,
           carrierAccountNumber: customer.carrierAccountNumber,
           status: customer.status,
+          actions: customer.actions || []
         }}
         onSave={handleSave}
         loading={mutating}

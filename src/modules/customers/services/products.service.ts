@@ -1,5 +1,7 @@
 import { Product } from '../types/product';
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "").trim();
+
 const MOCK_PRODUCTS: Product[] = [
   { id: 1, name: 'Product A', productCode: 'P-A-001', termLength: 12, provider: 'Provider X' },
   { id: 2, name: 'Product B', productCode: 'P-B-002', termLength: 24, provider: 'Provider Y' },
@@ -14,9 +16,19 @@ export interface ProductsService {
   list(): Promise<Product[]>;
 }
 
-export const productsServiceMock: ProductsService = {
+export const productsService: ProductsService = {
   async list() {
-    await delay(200);
-    return MOCK_PRODUCTS.slice();
+    const res = await fetch(`${API_BASE}/api/Product`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch roles: ${res.statusText}`);
+    }
+
+    return await res.json();
   },
 };
